@@ -704,9 +704,39 @@ async def handle_input(update: Update, context):
     except Exception as e:
         await message.reply_text(f"⚠️ Error: {str(e)}")
 
+# ---------- Webhook setup with cleanup ----------
+async def set_webhook(app, webhook_url):
+    # Delete any existing webhook and drop pending updates to avoid conflicts
+    await app.bot.delete_webhook(drop_pending_updates=True)
+    await app.bot.set_webhook(url=webhook_url)
+
 if __name__ == "__main__":
-    app = Application.builder().token("8930289761:AAFQBXj8szRA9xSxh1qtgxLkRMANVS9nbkk").build()
+    app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT | filters.Document.ALL, handle_input))
-    print("🤖 Bot is running...")
-    app.run_polling()
+
+    port = int(os.environ.get("PORT", 10000))
+    render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+    if render_host:
+        webhook_url = f"https://{render_host}/webhook"
+        print(f"Setting webhook to {webhook_url}")
+        # Set up the webhook and start
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=port,
+            url_path="webhook",
+            webhook_url=webhook_url,
+            drop_pending_updates=True
+        )
+        # Explicitly delete old webhook first just to be safe
+        import asyncio
+        asyncio.get_event_loop().run_until_complete(app.bot.delete_webhook(drop_pending_updates=True))
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=port,
+            url_path="webhook",
+            webhook_url=webhook_url
+        )
+    else:
+        print("🤖 Bot is running via polling (local)...")
+        app.run_polling()
