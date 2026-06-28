@@ -2,12 +2,12 @@ import os
 import tempfile
 import PyPDF2
 import docx
-from google import genai
+from openai import OpenAI
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
 # ---------- YOUR CONFIG (CHANGE THESE) ----------
-GEMINI_API_KEY = "AQ.Ab8RN6JAzytSMlSNFmnqkDFUkAZAEuI3lfK7UwNcD0ykwCLwfA"
+OpenAI_KEY = "sk-5364450292f7494193e94f613184b21c"
 TELEGRAM_TOKEN = "8930289761:AAFQBXj8szRA9xSxh1qtgxLkRMANVS9nbkk"
 HUMANIZING_PROMPT = """---
 name: humanizer
@@ -637,7 +637,8 @@ Text to humanize:
 """
 # ------------------------------------------------
 
-client = genai.Client(api_key="AQ.Ab8RN6JAzytSMlSNFmnqkDFUkAZAEuI3lfK7UwNcD0ykwCLwfA")
+client = OpenAI(api_key=os.environs.get"sk-5364450292f7494193e94f613184b21c"),
+  base_url="https://api.deepseek.com")
 
 def extract_text(file_path: str, mime_type: str) -> str:
     if mime_type == "application/pdf":
@@ -654,11 +655,16 @@ def extract_text(file_path: str, mime_type: str) -> str:
         raise ValueError("Unsupported file type. Send PDF, DOCX, or TXT.")
 
 def humanize_text(text: str) -> str:
-    response = client.models.generate_content(
-        model="models/gemini-2.5-flash",
-        contents=HUMANIZING_PROMPT + text
+    response = client.chat.completion.create(
+        model="deepseek-chat",
+        message=[{"role":"user","content":
+        HUMANIZING_PROMPT + text
+                 }
+                ],
+                temperature=0.7,
+                max_tokens=4096
     )
-    return response.text
+    return response.choice[0].message.content
 
 async def start(update: Update, context):
     await update.message.reply_text(
