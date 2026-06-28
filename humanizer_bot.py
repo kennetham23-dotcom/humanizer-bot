@@ -6,9 +6,10 @@ from openai import OpenAI
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
-# ---------- YOUR CONFIG (CHANGE THESE) ----------
-OpenAI_KEY = "sk-5364450292f7494193e94f613184b21c"
-TELEGRAM_TOKEN = "8930289761:AAFQBXj8szRA9xSxh1qtgxLkRMANVS9nbkk"
+# ---------- YOUR CONFIG (keys come from Render environment) ----------
+DEEPSEEK_API_KEY = os.environ.get("sk-5364450292f7494193e94f613184b21c")
+TELEGRAM_TOKEN = os.environ.get("8930289761:AAFQBXj8szRA9xSxh1qtgxLkRMANVS9nbkk")
+
 HUMANIZING_PROMPT = """---
 name: humanizer
 version: 2.8.0
@@ -631,15 +632,18 @@ This skill is based on [Wikipedia:Signs of AI writing](https://en.wikipedia.org/
 
 Key insight from Wikipedia: "LLMs use statistical algorithms to guess what should come next. The result tends toward the most statistically likely result that applies to the widest variety of cases."
 
-
+.
 
 Text to humanize:
 """
-# ------------------------------------------------
 
-client = OpenAI(api_key=os.environs.get"sk-5364450292f7494193e94f613184b21c"),
-  base_url="https://api.deepseek.com")
+# ---------- AI client setup ----------
+client = OpenAI(
+    api_key=DEEPSEEK_API_KEY,
+    base_url="https://api.deepseek.com"
+)
 
+# ---------- Text extraction from files ----------
 def extract_text(file_path: str, mime_type: str) -> str:
     if mime_type == "application/pdf":
         with open(file_path, "rb") as f:
@@ -654,18 +658,19 @@ def extract_text(file_path: str, mime_type: str) -> str:
     else:
         raise ValueError("Unsupported file type. Send PDF, DOCX, or TXT.")
 
+# ---------- Humanizer ----------
 def humanize_text(text: str) -> str:
-    response = client.chat.completion.create(
+    response = client.chat.completions.create(
         model="deepseek-chat",
-        message=[{"role":"user","content":
-        HUMANIZING_PROMPT + text
-                 }
-                ],
-                temperature=0.7,
-                max_tokens=4096
+        messages=[
+            {"role": "user", "content": HUMANIZING_PROMPT + text}
+        ],
+        temperature=0.7,
+        max_tokens=4096
     )
-    return response.choice[0].message.content
+    return response.choices[0].message.content
 
+# ---------- Telegram handlers ----------
 async def start(update: Update, context):
     await update.message.reply_text(
         "👋 Send me text or upload a document (PDF, Word, TXT). I'll make it sound human-written."
@@ -710,9 +715,25 @@ async def handle_input(update: Update, context):
     except Exception as e:
         await message.reply_text(f"⚠️ Error: {str(e)}")
 
-if __name__ == "__main__":
-    app = Application.builder().token("8930289761:AAFQBXj8szRA9xSxh1qtgxLkRMANVS9nbkk").build()
+# ---------- Main ----------
+if name == "__main__":
+    app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT | filters.Document.ALL, handle_input))
-    print("🤖 Bot is running...")
-    app.run_polling()
+
+    # Webhook for Render
+    port = int(os.environ.get("PORT", 10000))
+    render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+    if render_host:
+        webhook_url = f"https://{render_host}/webhook"
+        print(f"Setting webhook to {webhook_url}")
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=port,
+            url_path="webhook",
+            webhook_url=webhook_url
+        )
+      app.run_polling()
+    else:
+        # Fallback to polling (local testing)
+        print("🤖 Bot is running via polling (local)...")
