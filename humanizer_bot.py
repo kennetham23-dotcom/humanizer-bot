@@ -7,7 +7,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
 # ---------- YOUR CONFIG (CHANGE THESE) ----------
-GEMINI_API_KEY = "AQ.Ab8RN6JAzytSMlSNFmnqkDFUkAZAEuI3lfK7UwNcD0ykwCLwfA"
+GEMINI_API_KEY = os.environ.get("AQ.Ab8RN6JAzytSMlSNFmnqkDFUkAZAEuI3lfK7UwNcD0ykwCLwfA")
 TELEGRAM_TOKEN = "8930289761:AAFQBXj8szRA9xSxh1qtgxLkRMANVS9nbkk"
 HUMANIZING_PROMPT = """---
 name: humanizer
