@@ -1,0 +1,4 @@
+google-genai
+python-telegram-bot[webhooks]
+PyPDF2
+python-docx
