@@ -1,4 +1,0 @@
-openai
-python-telegram-bot[webhooks]
-PyPDF2
-python-docx
