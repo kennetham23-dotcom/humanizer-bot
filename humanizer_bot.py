@@ -7,7 +7,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
 # ---------- YOUR CONFIG (CHANGE THESE) ----------
-GEMINI_API_KEY = os.environ.get("AQ.Ab8RN6JAzytSMlSNFmnqkDFUkAZAEuI3lfK7UwNcD0ykwCLwfA")
+GEMINI_API_KEY = os.environ.get("AQ.Ab8RN6K_wyoRt7MZ2k--12R699mgitxNt2FFg9tdU2MYOm3GDQ")
 TELEGRAM_TOKEN = "8930289761:AAFQBXj8szRA9xSxh1qtgxLkRMANVS9nbkk"
 HUMANIZING_PROMPT = """---
 name: humanizer
@@ -637,7 +637,7 @@ Text to humanize:
 """
 # ------------------------------------------------
 
-client = genai.Client(api_key="AQ.Ab8RN6JAzytSMlSNFmnqkDFUkAZAEuI3lfK7UwNcD0ykwCLwfA")
+client = genai.Client(api_key="AQ.Ab8RN6K_wyoRt7MZ2k--12R699mgitxNt2FFg9tdU2MYOm3GDQ")
 
 def extract_text(file_path: str, mime_type: str) -> str:
     if mime_type == "application/pdf":
